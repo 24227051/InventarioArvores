@@ -1,0 +1,6 @@
+@InventarioArvores_HostAddress = http://localhost:5234
+
+GET {{InventarioArvores_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
