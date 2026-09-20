@@ -42,7 +42,6 @@ namespace InventarioArvores
             });
 
             builder.Services.AddControllers();
-
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -67,8 +66,10 @@ namespace InventarioArvores
                 app.UseSwaggerUI();
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+            app.MapIdentityApi<IdentityUser>();
 
             app.UseAuthorization();
 
