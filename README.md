@@ -16,4 +16,4 @@ Inventário de árvores e consulta por QR Code através de um sistema web (HTML,
 - Gerenciador de Árvores
 
 ## Tecnologias
-.NET 9, ASP.NET Core Web API, Swagger, Angular, MongoDB, Azure, EF Core e Identity Api Endpoints
+.NET 9, ASP.NET Core Web API, Swagger, Angular, SQL Server, MongoDB, Azure, EF Core e Identity Api Endpoints
