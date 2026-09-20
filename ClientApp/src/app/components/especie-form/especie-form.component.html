@@ -1,0 +1,65 @@
+<div class="container mt-4">
+  <h2>{{ isEditMode ? 'Editar Espécie' : 'Adicionar Nova Espécie' }}</h2>
+
+  <form #especieForm="ngForm" (ngSubmit)="especieForm.form.valid && saveEspecie()" novalidate>
+    <div class="form-group">
+      <label for="nomeCientifico">Nome Científico</label>
+      <input type="text"
+             id="nomeCientifico"
+             class="form-control"
+             [(ngModel)]="especie.nomeCientifico"
+             name="nomeCientifico"
+             #cieModel="ngModel"
+             [ngClass]="{'is-invalid': cieModel.invalid && (cieModel.dirty || cieModel.touched || especieForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="nomePopular">Nome Popular</label>
+      <input type="text"
+             id="nomePopular"
+             class="form-control"
+             [(ngModel)]="especie.nomePopular"
+             name="nomePopular"
+             #popModel="ngModel"
+             [ngClass]="{'is-invalid': popModel.invalid && (popModel.dirty || popModel.touched || especieForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="familia">Família</label>
+      <input type="text"
+             id="familia"
+             class="form-control"
+             [(ngModel)]="especie.familia"
+             name="familia"
+             #famModel="ngModel"
+             [ngClass]="{'is-invalid': famModel.invalid && (famModel.dirty || famModel.touched || especieForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="origem">Origem</label>
+      <input type="text"
+             id="origem"
+             class="form-control"
+             [(ngModel)]="especie.origem"
+             #oriModel="ngModel"
+             [ngClass]="{'is-invalid': oriModel.invalid && (oriModel.dirty || oriModel.touched || especieForm.submitted)}"
+             name="origem"
+             required>
+    </div>
+
+    @if (especieForm.submitted && especieForm.invalid) {
+    <div class="alert alert-danger p-2 small" role="alert">
+      Existem campos obrigatórios em branco ou inválidos acima.
+    </div>
+    }
+
+    <br>
+    <button type="submit" class="btn btn-success" [disabled]="especieForm.invalid">
+      {{ isEditMode ? 'Atualizar' : 'Adicionar' }} Espécie
+    </button>
+    <a class="btn btn-secondary ml-2" [routerLink]="['/especies']">Cancelar</a>
+  </form>
+</div>

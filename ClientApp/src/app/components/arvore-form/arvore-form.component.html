@@ -1,0 +1,259 @@
+<div class="container mt-4">
+  <h2>{{ isEditMode ? 'Editar Árvore' : 'Adicionar Nova Árvore' }}</h2>
+  <form #arvoreForm="ngForm" (ngSubmit)="arvoreForm.form.valid && saveArvore()" novalidate>
+    <div class="form-group">
+      <label for="especieId">Espécie</label>
+      <select class="form-control"
+              [(ngModel)]="arvore.especieId"
+              name="especieId"
+              #especieModel="ngModel"
+              [ngClass]="{'is-invalid': especieModel.invalid && (especieModel.dirty || especieModel.touched || arvoreForm.submitted)}"
+              required>
+        <option value="">Selecione uma espécie...</option>
+        @for (especie of especies; track especie.id) {
+        <option [value]="especie.id">{{ especie.nomePopular }} ({{ especie.nomeCientifico }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="dataRegistro">Data de Registro</label>
+      <input type="date"
+             id="dataRegistro"
+             class="form-control"
+             [(ngModel)]="arvore.dataRegistro"
+             name="dataRegistro"
+             #dataModel="ngModel"
+             [ngClass]="{'is-invalid': dataModel.invalid && (dataModel.dirty || dataModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-check form-switch mb-">
+      <label for="statusViva">Status Viva</label>
+      <input type="checkbox"
+             id="statusViva"
+             class="form-check-input"
+             [(ngModel)]="arvore.statusViva"
+             name="statusViva"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="latitude">Latitude</label>
+      <input type="number"
+             step="any"
+             id="latitude"
+             class="form-control"
+             [(ngModel)]="arvore.localizacao.coordinates[1]"
+             name="latitude"
+             #latModel="ngModel"
+             [ngClass]="{'is-invalid': latModel.invalid && (latModel.dirty || latModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="longitude">Longitude</label>
+      <input type="number"
+             step="any"
+             id="longitude"
+             class="form-control"
+             [(ngModel)]="arvore.localizacao.coordinates[0]"
+             name="longitude"
+             #longModel="ngModel"
+             [ngClass]="{'is-invalid': longModel.invalid && (longModel.dirty || longModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="enderecoAproximado">Endereço Aproximado</label>
+      <input type="text"
+             id="enderecoAproximado"
+             class="form-control"
+             [(ngModel)]="arvore.localizacao.enderecoAproximado"
+             name="enderecoAproximado"
+             #endModel="ngModel"
+             [ngClass]="{'is-invalid': endModel.invalid && (endModel.dirty || endModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="cap">Circunferência à Altura do Peito (cm)</label>
+      <input type="number"
+             step="any"
+             id="cap"
+             class="form-control"
+             [(ngModel)]="arvore.dendrometria.cap"
+             name="cap"
+             #capModel="ngModel"
+             [ngClass]="{'is-invalid': capModel.invalid && (capModel.dirty || capModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="alturaTotal">Altura Total (m)</label>
+      <input type="number"
+             step="any"
+             id="alturaTotal"
+             class="form-control"
+             [(ngModel)]="arvore.dendrometria.alturaTotal"
+             name="alturaTotal"
+             #totModel="ngModel"
+             [ngClass]="{'is-invalid': totModel.invalid && (totModel.dirty || totModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="alturaComercial">Altura Comercial (m)</label>
+      <input type="number"
+             step="any"
+             id="alturaComercial"
+             class="form-control"
+             [(ngModel)]="arvore.dendrometria.alturaComercial"
+             name="alturaComercial"
+             #comModel="ngModel"
+             [ngClass]="{'is-invalid': comModel.invalid && (comModel.dirty || comModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="diametroCopaNs">Diâmetro da Copa Norte-Sul (m)</label>
+      <input type="number"
+             step="any"
+             id="diametroCopaNs"
+             class="form-control"
+             [(ngModel)]="arvore.dendrometria.diametroCopaNs"
+             name="diametroCopaNs"
+             #cnsModel="ngModel"
+             [ngClass]="{'is-invalid': cnsModel.invalid && (cnsModel.dirty || cnsModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <div class="form-group">
+      <label for="diametroCopaLo">Diâmetro da Copa Leste-Oeste (m)</label>
+      <input type="number"
+             step="any"
+             id="diametroCopaLo"
+             class="form-control"
+             [(ngModel)]="arvore.dendrometria.diametroCopaLo"
+             name="diametroCopaLo"
+             #cloModel="ngModel"
+             [ngClass]="{'is-invalid': cloModel.invalid && (cloModel.dirty || cloModel.touched || arvoreForm.submitted)}"
+             required>
+    </div>
+
+    <hr>
+
+    <div class="d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Fotos</h4>
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="addFoto()">Adicionar foto</button>
+    </div>
+
+    @for (foto of arvore.fotos; track $index; let i = $index) {
+    <div class="border rounded p-3 mt-3">
+      <div class="form-group">
+        <label>URL da Foto</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="foto.urlFoto"
+               name="urlFoto{{i}}"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Data de Registro</label>
+        <input type="date"
+               class="form-control"
+               [(ngModel)]="foto.dataRegistro"
+               name="fotoDataRegistro{{i}}"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo da Foto</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="foto.tipoFoto"
+               name="tipoFoto{{i}}"
+               required>
+      </div>
+
+      <button type="button" class="btn btn-danger btn-sm" (click)="removeFoto(i)">
+        Remover foto
+      </button>
+    </div>
+    }
+
+    <hr>
+
+    <div class="d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Laudos Técnicos</h4>
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="addLaudo()">Adicionar laudo</button>
+    </div>
+
+    @for (laudo of arvore.laudosTecnicos; track $index; let i = $index) {
+    <div class="border rounded p-3 mt-3">
+      <div class="form-group">
+        <label>Data de Inspeção</label>
+        <input type="date"
+               class="form-control"
+               [(ngModel)]="laudo.dataInspecao"
+               name="dataInspecao{{i}}"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Responsável Técnico</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="laudo.responsavelTecnico"
+               name="responsavelTecnico{{i}}"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Condição Sanitária</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="laudo.condicaoSanitaria"
+               name="condicaoSanitaria{{i}}"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Risco de Queda</label>
+        <input type="text"
+               class="form-control"
+               [(ngModel)]="laudo.riscoQueda"
+               name="riscoQueda{{i}}"
+               required>
+      </div>
+
+      <div class="form-group">
+        <label>Recomendação de Manejo</label>
+        <textarea class="form-control"
+                  rows="3"
+                  [(ngModel)]="laudo.recomendacaoManejo"
+                  name="recomendacaoManejo{{i}}"
+                  required></textarea>
+      </div>
+
+      <button type="button" class="btn btn-danger btn-sm" (click)="removeLaudo(i)">
+        Remover laudo
+      </button>
+    </div>
+    }
+
+    @if (arvoreForm.submitted && arvoreForm.invalid) {
+    <div class="alert alert-danger p-2 small" role="alert">
+      Existem campos obrigatórios em branco ou inválidos acima.
+    </div>
+    }
+
+    <br>
+    <button type="submit" class="btn btn-success" [disabled]="arvoreForm.invalid">
+      {{ isEditMode ? 'Atualizar' : 'Adicionar' }} Árvore
+    </button>
+    <a class="btn btn-secondary ml-2" [routerLink]="['/arvores']">Cancelar</a>
+  </form>
+</div>
+

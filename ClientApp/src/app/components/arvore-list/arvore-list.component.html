@@ -1,0 +1,32 @@
+<div class="container mt-4">
+  <h2 class="text-center">Árvores</h2>
+  <button class="btn btn-primary mb-3" (click)="goToAddArvore()">Adicionar Nova Árvore</button>
+
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Espécie</th>
+        <th>Dt. Registro</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let arvore of arvores">
+        <td>{{ arvore.id }}</td>
+        <td>{{ arvore.especie?.nomePopular ?? 'Sem espécie' }}</td>
+        <td>{{ arvore.dataRegistro | date:'dd/MM/yyyy' }}</td>
+        <td>
+          <span class="badge" [ngClass]="arvore.statusViva ? 'bg-success' : 'bg-danger'">
+            {{ arvore.statusViva ? 'Viva' : 'Morta' }}
+          </span>
+        </td>
+        <td>
+          <button class="btn btn-warning" (click)="goToEditArvore(arvore.id)">Editar</button>
+          <button class="btn btn-danger ml-2" (click)="deleteArvore(arvore.id)">Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
