@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
+using InventarioArvores.Data;
 
 namespace InventarioArvores
 {
@@ -7,6 +11,20 @@ namespace InventarioArvores
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // ==========================================
+            // 1. CONFIGURAÇÃO DO SQL SERVER + IDENTITY
+            // ==========================================
+            var sqlConnectionString = builder.Configuration.GetConnectionString("SqlContext");
+
+            // Banco de dados do Identity (SQL Server)
+            builder.Services.AddDbContext<IdentityDataContext>(options =>
+                options.UseSqlServer(sqlConnectionString));
+
+            // Ativa a autenticação do Identity
+            builder.Services.AddAuthorization();
+            builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+                .AddEntityFrameworkStores<IdentityDataContext>();
 
             // ==========================================
             // 2. CONFIGURAÇÃO DO MONGODB
