@@ -38,11 +38,11 @@
       <div class="row mt-4">
         <div class="col-12">
           <h5 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt me-2"></i>Localização</h5>
-          <p><strong>Endereço Aproximado:</strong> {{ arvore.localizacao?.enderecoAproximado ?? 'Não informado' }}</p>
-          <p><small class="text-muted">Coordenadas (Lng, Lat): {{ arvore.localizacao?.coordinates?.join(', ') }}</small></p>
+          <p><strong>Endereço Aproximado:</strong> {{ arvore.localizacao.enderecoAproximado ?? 'Não informado' }}</p>
+          <p><small class="text-muted">Coordenadas (Lng, Lat): {{ arvore.localizacao.coordinates.join(', ') }}</small></p>
 
           <!-- Renderização do Google Maps Oficial do Angular -->
-          <div *ngIf="arvore.localizacao?.coordinates" class="border rounded overflow-hidden shadow-sm">
+          <div *ngIf="arvore.localizacao.coordinates && arvore.localizacao.coordinates.length" class="border rounded overflow-hidden shadow-sm">
             <google-map height="350px"
                         width="100%"
                         [center]="getCoordinates()"

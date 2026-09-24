@@ -42,9 +42,8 @@ export class ArvoreListComponent implements OnInit {
   }
 
   goToViewArvore(id: string): void {
-    this.router.navigate(['/arvores', id], {
-      state: { origem: 'lista' }
-    });
+    // Navega para a rota protegida que exibe o menu (MenuVisibilityGuard controla exibição)
+    this.router.navigate(['/arvores', id]);
   }
 
   deleteArvore(id: string): void {

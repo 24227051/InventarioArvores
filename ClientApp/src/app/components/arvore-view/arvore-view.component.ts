@@ -63,12 +63,12 @@ export class ArvoreViewComponent implements OnInit {
       this.arvoreService.obterPorId(id).subscribe(data => {
         this.arvore = {
           ...data,
-          dataRegistro: data.dataRegistro?.slice(0, 10) ?? '',
-          fotos: (data.fotos ?? []).map(foto => ({
+          dataRegistro: (data.dataRegistro || '').slice(0, 10),
+          fotos: (data.fotos || []).map(foto => ({
             ...foto,
-            dataRegistro: foto.dataRegistro?.slice(0, 10) ?? ''
+            dataRegistro: (foto.dataRegistro || '').slice(0, 10)
           })),
-          laudosTecnicos: data.laudosTecnicos ?? []
+          laudosTecnicos: data.laudosTecnicos || []
         };
       });
     }
@@ -76,8 +76,9 @@ export class ArvoreViewComponent implements OnInit {
 
   // Converte a estrutura [lng, lat] do GeoJSON para { lat, lng } exigida pelo Google Maps
   getCoordinates(): google.maps.LatLngLiteral {
-    if (this.arvore?.localizacao?.coordinates) {
-      const [lng, lat] = this.arvore.localizacao.coordinates;
+    const coords = this.arvore && this.arvore.localizacao && this.arvore.localizacao.coordinates;
+    if (coords && coords.length >= 2) {
+      const [lng, lat] = coords;
       return { lat, lng };
     }
     return { lat: 0, lng: 0 };

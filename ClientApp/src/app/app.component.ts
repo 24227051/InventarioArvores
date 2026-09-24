@@ -1,33 +1,28 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit  } from '@angular/core';
-import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { filter } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router';
+import { MenuService } from './services/menu.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterModule],
+  imports: [CommonModule, RouterOutlet, RouterLink],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
   title = 'ClientApp';
   showMenu = true;
+  private sub?: Subscription;
 
-  constructor(private router: Router) {}
+  constructor(private menu: MenuService) { }
 
   ngOnInit(): void {
-    const updateMenu = (): void => {
-      const isArvoreDetalhe = this.router.url.startsWith('/arvores/');
-      const origem = window.history.state?.origem;
+    this.sub = this.menu.showMenu$.subscribe(v => this.showMenu = v);
+  }
 
-      this.showMenu = !isArvoreDetalhe || origem === 'lista';
-    };
-
-    updateMenu();
-
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => updateMenu());
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 }

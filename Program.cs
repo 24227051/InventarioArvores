@@ -70,12 +70,13 @@ namespace InventarioArvores
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
-            app.MapIdentityApi<IdentityUser>();
-
-            app.UseAuthorization();
 
             app.UseCors("AllowAllOrigins");
 
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.MapIdentityApi<IdentityUser>();
             app.MapControllers();
 
             app.Run();
