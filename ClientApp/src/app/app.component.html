@@ -53,16 +53,10 @@
   <h1>Inventário de Árvores</h1>
   <p>Prefeitura Municipal de Vinhedo - SP - Secretaria do Planejamento do Meio Ambiente</p>
 
-  <div class="nav-links">
-    <!--<a routerLink="/workouts" class="nav-link">Workouts</a>
-    <a routerLink="/goals" class="nav-link">Fitness Goals</a>-->
+  <div class="nav-links" *ngIf="showMenu">
     <a routerLink="/especies" class="nav-link">Espécies</a>
     <a routerLink="/arvores" class="nav-link">Árvores</a>
   </div>
-
-  <!--<div class="footer">
-    <p>&copy; All rights reserved. All rights reserved.</p>
-  </div>-->
 </div>
 
 <router-outlet></router-outlet>

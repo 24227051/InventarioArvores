@@ -36,7 +36,9 @@ export class ArvoreListComponent implements OnInit {
   }
 
   goToViewArvore(id: string): void {
-    this.router.navigate([`/arvores`, id]);
+    this.router.navigate(['/arvores', id], {
+      state: { origem: 'lista' }
+    });
   }
 
   deleteArvore(id: string): void {
