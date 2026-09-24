@@ -482,3 +482,4 @@ $RECYCLE.BIN/
 *.swp
 /appsettings.json
 /ClientApp/src/index.html
+/appsettings.Development.json
