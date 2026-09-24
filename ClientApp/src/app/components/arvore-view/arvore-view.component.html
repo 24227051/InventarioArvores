@@ -1,0 +1,131 @@
+<div class="container mt-4">
+  <h2 class="text-center mb-4 text-secondary">Detalhes da Árvore</h2>
+
+  <div *ngIf="arvore" class="card shadow-sm mb-4">
+    <!-- Cabeçalho Principal -->
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">{{ arvore.especie?.nomePopular ?? 'Espécie Não Identificada' }}</h4>
+      <span class="badge" [ngClass]="arvore.statusViva ? 'bg-success' : 'bg-danger'">
+        {{ arvore.statusViva ? 'Viva' : 'Morta' }}
+      </span>
+    </div>
+
+    <div class="card-body">
+      <!-- Grid Principal: Informações Básicas e Dendrometria -->
+      <div class="row g-4">
+        <!-- Coluna 1: Informações Gerais -->
+        <div class="col-md-6">
+          <h5 class="text-primary border-bottom pb-2"><i class="bi bi-info-circle me-2"></i>Informações Gerais</h5>
+          <p><strong>ID do Registro:</strong> {{ arvore.id }}</p>
+          <p><strong>Nome Científico:</strong> <em>{{ arvore.especie?.nomeCientifico ?? 'Sem nome científico' }}</em></p>
+          <p><strong>Família Botânica:</strong> {{ arvore.especie?.familia ?? 'Sem família' }}</p>
+          <p><strong>Origem:</strong> {{ arvore.especie?.origem ?? 'Sem origem' }}</p>
+          <p><strong>Data de Registro:</strong> {{ arvore.dataRegistro | date:'dd/MM/yyyy' }}</p>
+        </div>
+
+        <!-- Coluna 2: Dados Dendrométricos -->
+        <div class="col-md-6">
+          <h5 class="text-primary border-bottom pb-2"><i class="bi bi-rulers me-2"></i>Dendrometria</h5>
+          <p><strong>CAP (Circunferência Altura Peito):</strong> {{ arvore.dendrometria.cap }} cm</p>
+          <p><strong>Altura Total:</strong> {{ arvore.dendrometria.alturaTotal }} m</p>
+          <p><strong>Altura Comercial:</strong> {{ arvore.dendrometria.alturaComercial }} m</p>
+          <p><strong>Diâmetro da Copa (Norte/Sul):</strong> {{ arvore.dendrometria.diametroCopaNs }} m</p>
+          <p><strong>Diâmetro da Copa (Leste/Oeste):</strong> {{ arvore.dendrometria.diametroCopaLo }} m</p>
+        </div>
+      </div>
+
+      <!-- Seção: Localização (Endereço + Mapa) -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <h5 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt me-2"></i>Localização</h5>
+          <p><strong>Endereço Aproximado:</strong> {{ arvore.localizacao?.enderecoAproximado ?? 'Não informado' }}</p>
+          <p><small class="text-muted">Coordenadas (Lng, Lat): {{ arvore.localizacao?.coordinates?.join(', ') }}</small></p>
+
+          <!-- Renderização do Google Maps Oficial do Angular -->
+          <div *ngIf="arvore.localizacao?.coordinates" class="border rounded overflow-hidden shadow-sm">
+            <google-map height="350px"
+                        width="100%"
+                        [center]="getCoordinates()"
+                        [zoom]="mapZoom"
+                        [options]="mapOptions">
+
+              <!-- Marcador no local exato da árvore -->
+              <map-marker [position]="getCoordinates()"
+                          [title]="arvore.especie?.nomePopular ?? 'Árvore'">
+              </map-marker>
+
+            </google-map>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção: Galeria de Fotos -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <h5 class="text-primary border-bottom pb-2"><i class="bi bi-images me-2"></i>Galeria de Fotos</h5>
+
+          <div *ngIf="arvore.fotos && arvore.fotos.length > 0; else noFotos" class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+            <div class="col" *ngFor="let foto of arvore.fotos">
+              <div class="card h-100 shadow-sm text-center">
+                <img [src]="foto.urlFoto" class="card-img-top img-fluid style-object-fit" style="height: 160px; object-fit: cover;" alt="Foto da árvore">
+                <div class="card-body p-2">
+                  <span class="badge bg-secondary mb-1">{{ foto.tipoFoto }}</span>
+                  <p class="card-text small text-muted mb-0">{{ foto.dataRegistro | date:'dd/MM/yyyy' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noFotos>
+            <p class="text-muted italic">Nenhuma foto registrada para este exemplar.</p>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Seção: Histórico de Laudos Técnicos -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <h5 class="text-primary border-bottom pb-2"><i class="bi bi-file-earmark-medical me-2"></i>Laudos Técnicos</h5>
+
+          <div *ngIf="arvore.laudosTecnicos && arvore.laudosTecnicos.length > 0; else noLaudos" class="table-responsive">
+            <table class="table table-hover border">
+              <thead class="table-light">
+                <tr>
+                  <th>Data</th>
+                  <th>Responsável</th>
+                  <th>Condição Sanitária</th>
+                  <th>Risco de Queda</th>
+                  <th>Recomendação de Manejo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let laudo of arvore.laudosTecnicos">
+                  <td>{{ laudo.dataInspecao | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ laudo.responsavelTecnico }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-success': laudo.condicaoSanitaria === 'Boa',
+                      'bg-warning text-dark': laudo.condicaoSanitaria === 'Regular',
+                      'bg-danger': laudo.condicaoSanitaria === 'Ruim'
+                    }">{{ laudo.condicaoSanitaria }}</span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-success': laudo.riscoQueda === 'Baixo',
+                      'bg-warning text-dark': laudo.riscoQueda === 'Médio',
+                      'bg-danger': laudo.riscoQueda === 'Alto'
+                    }">{{ laudo.riscoQueda }}</span>
+                  </td>
+                  <td>{{ laudo.recomendacaoManejo }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noLaudos>
+            <p class="text-muted italic">Nenhum laudo técnico emitido para este exemplar.</p>
+          </ng-template>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

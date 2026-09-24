@@ -35,6 +35,10 @@ export class ArvoreListComponent implements OnInit {
     this.router.navigate([`/edit-arvore/${id}`]);
   }
 
+  goToViewArvore(id: string): void {
+    this.router.navigate([`/arvores`, id]);
+  }
+
   deleteArvore(id: string): void {
     if (confirm('Tem certeza de que deseja excluir esta árvore?')) {
       this.arvoreService.deletar(id).subscribe({

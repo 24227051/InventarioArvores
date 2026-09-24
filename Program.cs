@@ -24,6 +24,7 @@ namespace InventarioArvores
             // Ativa a autenticação do Identity
             builder.Services.AddAuthorization();
             builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<IdentityDataContext>();
 
             // ==========================================
