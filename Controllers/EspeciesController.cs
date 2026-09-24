@@ -9,7 +9,7 @@ namespace InventarioArvores.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class EspeciesController : ControllerBase
     {
         private readonly IMongoCollection<Especie> _especiesCollection;

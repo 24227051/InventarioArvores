@@ -11,7 +11,7 @@ namespace InventarioArvores.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ArvoresController : ControllerBase
     {
         private readonly IMongoCollection<Arvore> _arvoresCollection;
@@ -58,6 +58,7 @@ namespace InventarioArvores.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ArvoreDetalhadaDto>> ObterPorId(string id)
         {
             if (!ObjectId.TryParse(id, out _))

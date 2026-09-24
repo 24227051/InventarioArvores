@@ -24,6 +24,12 @@ export class ArvoreListComponent implements OnInit {
   loadArvores(): void {
     this.arvoreService.obterTodas().subscribe(arvores => {
       this.arvores = arvores;
+      this.arvores = this.arvores.map(arvore => {
+        return {
+          ...arvore,
+          dataRegistro: arvore.dataRegistro?.slice(0, 10) ?? ''
+        };
+      });
     });
   }
 
