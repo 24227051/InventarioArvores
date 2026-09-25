@@ -11,7 +11,7 @@ namespace InventarioArvores.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class ArvoresController : ControllerBase
     {
         private readonly IMongoCollection<Arvore> _arvoresCollection;
