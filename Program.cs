@@ -57,10 +57,16 @@ namespace InventarioArvores
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAllOrigins",
-                    policy => policy.AllowAnyOrigin()
-                                    .AllowAnyMethod()
-                                    .AllowAnyHeader());
+                //options.AddPolicy("AllowAllOrigins",
+                //    policy => policy.AllowAnyOrigin()
+                //                    .AllowAnyMethod()
+                //                    .AllowAnyHeader());
+                options.AddPolicy("PermitirAngular", policy =>
+                {
+                    policy.WithOrigins("https://tree-api-ayhxawb8fxacbxgy.westus3-01.azurewebsites.net") // URL do seu App Service Angular
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
             });
 
             var app = builder.Build();
@@ -75,7 +81,8 @@ namespace InventarioArvores
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
-            app.UseCors("AllowAllOrigins");
+            //app.UseCors("AllowAllOrigins");
+            app.UseCors("PermitirAngular");
 
             app.UseAuthentication();
             app.UseAuthorization();
