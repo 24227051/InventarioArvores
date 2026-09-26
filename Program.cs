@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +22,8 @@ namespace InventarioArvores
 
             // Banco de dados do Identity (SQL Server)
             builder.Services.AddDbContext<IdentityDataContext>(options =>
-                options.UseSqlServer(sqlConnectionString));
+                options.UseSqlServer(sqlConnectionString, sqlOptions =>
+                    sqlOptions.EnableRetryOnFailure()));
 
             // Ativa a autenticação do Identity
             builder.Services.AddAuthorization();
@@ -30,6 +34,27 @@ namespace InventarioArvores
             })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<IdentityDataContext>();
+
+            // Persistência de chaves de DataProtection (em produção, use Blob/KeyVault)
+            var keyFolder = Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys");
+            Directory.CreateDirectory(keyFolder);
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keyFolder))
+                .SetApplicationName("InventarioArvores");
+
+            // Reduz a frequência de validação do SecurityStamp para evitar consultas constantes ao DB
+            builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+            {
+                options.ValidationInterval = TimeSpan.FromHours(8);
+            });
+
+            // Configurações do cookie de aplicação
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+                options.SlidingExpiration = true;
+            });
 
             // ==========================================
             // 2. CONFIGURAÇÃO DO MONGODB
