@@ -21,6 +21,7 @@ export class RegisterComponent {
   submit() {
     this.error = '';
     this.success = '';
+
     if (this.model.password !== this.model.confirmPassword) {
       this.error = 'As senhas não coincidem.';
       return;
@@ -31,7 +32,17 @@ export class RegisterComponent {
         this.success = 'Conta criada com sucesso. Faça login.';
         setTimeout(() => this.router.navigate(['/login']), 1200);
       },
-      error: (err) => this.error = err?.error?.message || 'Erro ao registrar'
+      error: (err) => {
+        const apiErrors = err?.error?.errors;
+
+        if (apiErrors && typeof apiErrors === 'object') {
+          this.error = Object.values(apiErrors).flat().join(' ');
+          return;
+        }
+
+        this.error = err?.error?.title || err?.error?.message || 'Erro ao registrar';
+        console.error('Erro ao registrar:', err);
+      }
     });
   }
 }
