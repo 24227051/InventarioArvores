@@ -14,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent {
   model = { email: '', password: '' };
   error = '';
+  loading = false;
 
   constructor(
     private auth: AuthService,
@@ -23,11 +24,19 @@ export class LoginComponent {
 
   submit() {
     this.error = '';
+    this.loading = true;
+
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/especies';
 
     this.auth.login(this.model).subscribe({
-      next: () => this.router.navigateByUrl(returnUrl),
-      error: (err) => this.error = err?.error?.message || 'Erro ao efetuar login'
+      next: () => {
+        this.loading = false;
+        this.router.navigateByUrl(returnUrl);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err?.error?.message || 'Erro ao efetuar login';
+      }
     });
   }
 }
