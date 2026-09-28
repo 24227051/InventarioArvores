@@ -15,8 +15,9 @@ export class RegisterComponent {
   model = { email: '', password: '', confirmPassword: '' };
   error = '';
   success = '';
+  loading = false;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router) { }
 
   submit() {
     this.error = '';
@@ -27,12 +28,16 @@ export class RegisterComponent {
       return;
     }
 
+    this.loading = true;
+
     this.auth.register({ email: this.model.email, password: this.model.password }).subscribe({
       next: () => {
+        this.loading = false;
         this.success = 'Conta criada com sucesso. Faça login.';
         setTimeout(() => this.router.navigate(['/login']), 1200);
       },
       error: (err) => {
+        this.loading = false;
         const apiErrors = err?.error?.errors;
 
         if (apiErrors && typeof apiErrors === 'object') {
