@@ -193,8 +193,15 @@ namespace InventarioArvores.UnitTests
             replaceResult.MatchedCount.Returns(0);
 
             var collection = Substitute.For<IMongoCollection<Arvore>>();
-            collection.ReplaceOneAsync(Arg.Any<Expression<Func<Arvore, bool>>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
-                      .ReturnsForAnyArgs(Task.FromResult(replaceResult));
+
+            // 2. Mantendo os argumentos corretos para evitar a ambiguidade do NSubstitute
+            collection.ReplaceOneAsync(
+                Arg.Any<FilterDefinition<Arvore>>(),
+                Arg.Any<Arvore>(),
+                Arg.Any<ReplaceOptions>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(Task.FromResult(replaceResult));
 
             var controller = CreateControllerWithCollections(collection);
 
@@ -211,7 +218,7 @@ namespace InventarioArvores.UnitTests
             replaceResult.MatchedCount.Returns(1);
 
             var collection = Substitute.For<IMongoCollection<Arvore>>();
-            collection.ReplaceOneAsync(Arg.Any<Expression<Func<Arvore, bool>>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
+            collection.ReplaceOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
                       .ReturnsForAnyArgs(Task.FromResult(replaceResult));
 
             var controller = CreateControllerWithCollections(collection);
@@ -220,7 +227,7 @@ namespace InventarioArvores.UnitTests
             var result = await controller.Atualizar(id, new Arvore());
 
             result.Should().BeOfType<NoContentResult>();
-            await collection.Received(1).ReplaceOneAsync(Arg.Any<Expression<Func<Arvore, bool>>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>());
+            await collection.Received(1).ReplaceOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]

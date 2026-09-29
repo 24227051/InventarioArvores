@@ -131,7 +131,7 @@ namespace InventarioArvores.UnitTests
             replaceResult.MatchedCount.Returns(0);
 
             var collection = Substitute.For<IMongoCollection<Especie>>();
-            collection.ReplaceOneAsync(Arg.Any<Expression<Func<Especie, bool>>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
+            collection.ReplaceOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
                       .ReturnsForAnyArgs(Task.FromResult(replaceResult));
 
             var controller = CreateControllerWithCollection(collection);
@@ -150,7 +150,7 @@ namespace InventarioArvores.UnitTests
             replaceResult.MatchedCount.Returns(1);
 
             var collection = Substitute.For<IMongoCollection<Especie>>();
-            collection.ReplaceOneAsync(Arg.Any<Expression<Func<Especie, bool>>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
+            collection.ReplaceOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
                       .ReturnsForAnyArgs(Task.FromResult(replaceResult));
 
             var controller = CreateControllerWithCollection(collection);
@@ -159,7 +159,7 @@ namespace InventarioArvores.UnitTests
             var result = await controller.Atualizar(id, new Especie());
 
             result.Should().BeOfType<NoContentResult>();
-            await collection.Received(1).ReplaceOneAsync(Arg.Any<Expression<Func<Especie, bool>>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>());
+            await collection.Received(1).ReplaceOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace InventarioArvores.UnitTests
             deleteResult.DeletedCount.Returns(0);
 
             var collection = Substitute.For<IMongoCollection<Especie>>();
-            collection.DeleteOneAsync(Arg.Any<Expression<Func<Especie, bool>>>(), Arg.Any<CancellationToken>())
+            collection.DeleteOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<CancellationToken>())
                       .ReturnsForAnyArgs(Task.FromResult(deleteResult));
 
             var controller = CreateControllerWithCollection(collection);
