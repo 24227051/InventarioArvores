@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../InventarioArvores.UnitTests/InventarioArvores.UnitTests.csproj" Id="865aff9a-5f9f-4f48-a498-f5afa3bc65bd" />
   <Project Path="InventarioArvores.csproj" />
 </Solution>
