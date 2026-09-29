@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="InventarioArvores.UnitTests\**" />
+    <Content Remove="InventarioArvores.UnitTests\**" />
+    <EmbeddedResource Remove="InventarioArvores.UnitTests\**" />
+    <None Remove="InventarioArvores.UnitTests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include=".github\copilot-instructions.md" />
   </ItemGroup>
 
