@@ -10,6 +10,7 @@ import {
   LaudoTecnicoInfo
 } from '../../models/tree.model';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-arvore-view',
@@ -45,7 +46,8 @@ export class ArvoreViewComponent implements OnInit {
     private arvoreService: ArvoreService,
     private especieService: EspecieService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private auth: AuthService
   ) { }
 
   // Configurações padrão do mapa
@@ -57,7 +59,9 @@ export class ArvoreViewComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    this.loadEspecies();
+    if (this.auth.isAuthenticated()) {
+      this.loadEspecies();
+    }
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.arvoreService.obterPorId(id).subscribe(data => {
