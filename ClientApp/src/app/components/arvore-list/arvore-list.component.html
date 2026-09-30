@@ -1,10 +1,31 @@
 <div class="container mt-4">
   <h2 class="text-center">Árvores</h2>
-  <button class="btn btn-primary mb-3" (click)="goToAddArvore()">Adicionar Nova Árvore</button>
-
+  <div class="row align-items-center mb-3">
+    <div class="col-auto">
+      <button class="btn btn-primary" (click)="goToAddArvore()" style="height: 38px; display: inline-flex; align-items: center;">
+        Adicionar Nova Árvore
+      </button>
+    </div>
+    <div class="col-auto ps-0">
+      <!-- ps-0 remove o espaço esquerdo duplicado -->
+      <button class="btn btn-success"
+              [disabled]="getSelectedIds().length === 0"
+              (click)="goToGerarQrCodes()"
+              style="height: 38px; display: inline-flex; align-items: center;">
+        <span>🖨️</span> <span class="ms-1">Gerar QR Codes ({{ getSelectedIds().length }})</span>
+      </button>
+    </div>
+  </div>
   <table class="table table-hover">
     <thead>
       <tr>
+        <th style="width: 40px;">
+          <!-- Checkbox para selecionar/desmarcar todos -->
+          <input type="checkbox"
+                 class="form-check-input"
+                 [checked]="isAllSelected()"
+                 (change)="toggleAll($event)">
+        </th>
         <th>Id</th>
         <th>Espécie</th>
         <th>Dt. Registro</th>
@@ -14,6 +35,12 @@
     </thead>
     <tbody>
       <tr *ngFor="let arvore of arvores">
+        <td>
+          <!-- Checkbox individual ligado à propriedade dinâmica selecionada -->
+          <input type="checkbox"
+                 class="form-check-input"
+                 [(ngModel)]="arvore.selecionada">
+        </td>
         <td>{{ arvore.id }}</td>
         <td>{{ arvore.especie?.nomePopular ?? 'Sem espécie' }}</td>
         <td>{{ arvore.dataRegistro | date:'dd/MM/yyyy' }}</td>

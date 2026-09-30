@@ -4,6 +4,7 @@ import { EspecieListComponent } from './components/especie-list/especie-list.com
 import { ArvoreFormComponent } from './components/arvore-form/arvore-form.component';
 import { ArvoreListComponent } from './components/arvore-list/arvore-list.component';
 import { ArvoreViewComponent } from './components/arvore-view/arvore-view.component';
+import { ArvoreQrcodeComponent } from './components/arvore-qrcode/arvore-qrcode.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { AuthGuard } from './guards/auth.guard';
@@ -25,6 +26,6 @@ export const routes: Routes = [
 
   // Tree detail without menu
   { path: 'arvores/:id', component: ArvoreViewComponent, canActivate: [MenuVisibilityGuard], data: { showMenu: false } },
-
+  { path: 'arvores-qrcode', component: ArvoreQrcodeComponent, canActivate: [AuthGuard, MenuVisibilityGuard], data: { showMenu: false } },
   { path: '', redirectTo: '/especies', pathMatch: 'full' },
 ];

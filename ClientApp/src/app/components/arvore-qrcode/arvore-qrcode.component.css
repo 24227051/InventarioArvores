@@ -1,0 +1,78 @@
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+.qr-card {
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  background: #fff;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  page-break-inside: avoid; /* Evita quebrar o card no meio entre duas páginas */
+}
+
+.qr-header {
+  font-weight: bold;
+  font-size: 14px;
+  color: #2e7d32;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.qr-details {
+  margin-top: 8px;
+}
+
+.especie {
+  font-weight: bold;
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.id {
+  font-size: 12px;
+  color: #666;
+  margin: 2px 0 0 0;
+}
+
+  .id span {
+    font-family: monospace;
+    font-weight: bold;
+  }
+
+/* --- REGRAS PARA IMPRESSÃO --- */
+@media print {
+  /* Oconde botões e cabeçalhos do sistema na hora de imprimir */
+  .no-print-section,
+  nav,
+  sidebar,
+  button {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .qr-grid {
+    grid-template-columns: repeat(3, 1fr); /* Força 3 colunas na folha A4 */
+    gap: 15px;
+    padding: 0;
+  }
+
+  .qr-card {
+    box-shadow: none;
+    border: 1px dashed #000; /* Linha pontilhada facilita o corte com tesoura */
+  }
+}

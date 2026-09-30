@@ -1,0 +1,24 @@
+<div class="container mt-4 no-print-section">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>QR Codes Gerados ({{ qrCodesList.length }})</h3>
+    <button class="btn btn-success" (click)="imprimir()">
+      🖨️ Imprimir Etiquetas
+    </button>
+  </div>
+</div>
+
+<!-- Grade de QR Codes -->
+<div class="qr-grid">
+  <div class="qr-card" *ngFor="let item of qrCodesList">
+    <div class="qr-header">🌳 Identificação Botânica</div>
+
+    <!-- O Canvas onde a biblioteca 'qrcode' vai desenhar -->
+    <canvas #qrCanvas></canvas>
+
+    <div class="qr-details">
+      <p class="especie">{{ item.especie }}</p>
+      <p class="id">ID: <span>{{ item.id }}</span></p>
+    </div>
+  </div>
+</div>
+
