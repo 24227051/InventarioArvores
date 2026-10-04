@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
+using InventarioArvores.Services;
 using InventarioArvores.Data;
 
 namespace InventarioArvores
@@ -70,6 +71,11 @@ namespace InventarioArvores
                 var client = sp.GetRequiredService<IMongoClient>();
                 return client.GetDatabase("InventarioArvoresDb"); // Nome do seu banco NoSQL
             });
+
+            // Registra o serviço de árvore para permitir injeção/Mock em testes
+            builder.Services.AddScoped<IArvoreService, ArvoreService>();
+            // Registra o serviço de espécie para permitir injeção/Mock em testes
+            builder.Services.AddScoped<IEspecieService, EspecieService>();
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
