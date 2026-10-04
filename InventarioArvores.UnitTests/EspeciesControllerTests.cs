@@ -1,214 +1,209 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using InventarioArvores.Controllers;
+﻿using InventarioArvores.Controllers;
 using InventarioArvores.Models;
+using InventarioArvores.Services;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
 namespace InventarioArvores.UnitTests
 {
-    // Testes do controlador EspeciesController
-    //public class EspeciesControllerTests
-    //{
-    //    private static EspeciesController CreateControllerWithCollection(
-    //        IMongoCollection<Especie>? collection = null)
-    //    {
-    //        var database = Substitute.For<IMongoDatabase>();
-    //        var col = collection ?? Substitute.For<IMongoCollection<Especie>>();
-    //        // Configura retorno para GetCollection com ReturnsForAnyArgs para cobrir ambas as assinaturas
-    //        database.GetCollection<Especie>(Arg.Any<string>()).ReturnsForAnyArgs(col);
-    //        return new EspeciesController(database);
-    //    }
+    public class EspeciesControllerTests
+    {
+        private readonly IEspecieService _mockService;
+        private readonly ILogger<EspeciesController> _mockLogger;
+        private readonly EspeciesController _controller;
 
-    //    [Fact]
-    //    public async Task GetAll_ReturnsOkWithList()
-    //    {
-    //        // Arrange: prepara lista esperada
-    //        var expected = new List<Especie> { new Especie { Id = ObjectId.GenerateNewId().ToString(), NomeCientifico = "A" } };
+        public EspeciesControllerTests()
+        {
+            _mockService = Substitute.For<IEspecieService>();
+            _mockLogger = Substitute.For<ILogger<EspeciesController>>();
+            _controller = new EspeciesController(_mockService, _mockLogger);
+        }
 
-    //        var findFluent = Substitute.For<IFindFluent<Especie, Especie>>();
-    //        findFluent.ToListAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(expected));
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.Find(Arg.Any<Expression<Func<Especie, bool>>>()).ReturnsForAnyArgs(findFluent);
+        [Fact]
+        public async Task Criar_Should_ReturnCreatedAtAction_When_ValidEspecie()
+        {
+            // Arrange
+            var novaEspecie = new Especie
+            {
+                Id = "123",
+                NomeCientifico = "Araucaria angustifolia",
+                NomePopular = "Araucária"
+            };
 
-    //        var controller = CreateControllerWithCollection(collection);
+            _mockService
+                .CreateAsync(novaEspecie)
+                .Returns(Task.CompletedTask);
 
-    //        // Act
-    //        var result = await controller.ObterTodas();
+            // Act
+            var result = await _controller.Criar(novaEspecie);
 
-    //        // Assert
-    //        var ok = result.Result as OkObjectResult;
-    //        ok.Should().NotBeNull();
-    //        ok!.StatusCode.Should().Be(200);
-    //        (ok.Value as IEnumerable<Especie>).Should().BeEquivalentTo(expected);
-    //    }
+            // Assert
+            result.Should().BeOfType<CreatedAtActionResult>();
+            var createdResult = result as CreatedAtActionResult;
+            createdResult.ActionName.Should().Be(nameof(EspeciesController.ObterPorId));
+            createdResult.RouteValues["id"].Should().Be(novaEspecie.Id);
 
-    //    [Fact]
-    //    public async Task GetById_InvalidId_ReturnsBadRequest()
-    //    {
-    //        var controller = CreateControllerWithCollection();
+            await _mockService.Received(1).CreateAsync(novaEspecie);
+        }
 
-    //        var result = await controller.ObterPorId("invalid-id");
+        [Fact]
+        public async Task ObterTodas_Should_ReturnOkResult_With_EspeciesList()
+        {
+            // Arrange
+            var especies = new List<Especie>
+            {
+                new Especie
+                {
+                    Id = "1",
+                    NomeCientifico = "Araucaria angustifolia",
+                    NomePopular = "Araucária"
+                },
+                new Especie
+                {
+                    Id = "2",
+                    NomeCientifico = "Tabebuia serratifolia",
+                    NomePopular = "Ipê"
+                }
+            };
 
-    //        result.Result.Should().BeOfType<BadRequestObjectResult>();
-    //    }
+            _mockService
+                .GetAllAsync()
+                .Returns(especies);
 
-    //    [Fact]
-    //    public async Task GetById_NotFound_ReturnsNotFound()
-    //    {
-    //        var findFluent = Substitute.For<IFindFluent<Especie, Especie>>();
-    //        findFluent.FirstOrDefaultAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<Especie?>(null));
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.Find(Arg.Any<Expression<Func<Especie, bool>>>()).ReturnsForAnyArgs(findFluent);
+            // Act
+            var result = await _controller.ObterTodas();
 
-    //        var controller = CreateControllerWithCollection(collection);
+            // Assert
+            result.Result.Should().BeOfType<OkObjectResult>();
+            var okResult = result.Result as OkObjectResult;
+            var returnedEspecies = okResult.Value as IEnumerable<Especie>;
 
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.ObterPorId(id);
+            returnedEspecies.Should().HaveCount(2);
+            await _mockService.Received(1).GetAllAsync();
+        }
 
-    //        result.Result.Should().BeOfType<NotFoundResult>();
-    //    }
+        [Fact]
+        public async Task ObterPorId_Should_ReturnOkResult_When_EspecieExists()
+        {
+            // Arrange
+            var id = "123";
+            var especie = new Especie
+            {
+                Id = id,
+                NomeCientifico = "Araucaria angustifolia",
+                NomePopular = "Araucária"
+            };
 
-    //    [Fact]
-    //    public async Task GetById_Found_ReturnsOkWithItem()
-    //    {
-    //        var item = new Especie { Id = ObjectId.GenerateNewId().ToString(), NomeCientifico = "Found" };
+            _mockService
+                .GetByIdAsync(id)
+                .Returns(especie);
 
-    //        var findFluent = Substitute.For<IFindFluent<Especie, Especie>>();
-    //        findFluent.FirstOrDefaultAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<Especie?>(item));
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.Find(Arg.Any<Expression<Func<Especie, bool>>>()).ReturnsForAnyArgs(findFluent);
+            // Act
+            var result = await _controller.ObterPorId(id);
 
-    //        var controller = CreateControllerWithCollection(collection);
+            // Assert
+            result.Result.Should().BeOfType<OkObjectResult>();
+            var okResult = result.Result as OkObjectResult;
+            okResult.Value.Should().BeEquivalentTo(especie);
+        }
 
-    //        var result = await controller.ObterPorId(item.Id);
+        [Fact]
+        public async Task ObterPorId_Should_ReturnBadRequest_When_EspecieDoesNotExist()
+        {
+            // Arrange
+            var id = "nonexistent";
 
-    //        var ok = result.Result as OkObjectResult;
-    //        ok.Should().NotBeNull();
-    //        (ok!.Value as Especie).Should().BeEquivalentTo(item);
-    //    }
+            _mockService
+                .GetByIdAsync(id)
+                .Returns((Especie)null);
 
-    //    [Fact]
-    //    public async Task Create_CallsInsertAndReturnsCreated()
-    //    {
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.InsertOneAsync(Arg.Any<Especie>(), Arg.Any<InsertOneOptions>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(Task.CompletedTask);
+            // Act
+            var result = await _controller.ObterPorId(id);
 
-    //        var controller = CreateControllerWithCollection(collection);
+            // Assert
+            result.Result.Should().BeOfType<BadRequestObjectResult>();
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            badRequestResult.Value.Should().Be("ID inválido.");
+        }
 
-    //        var newItem = new Especie { Id = ObjectId.GenerateNewId().ToString(), NomeCientifico = "New" };
-    //        var result = await controller.Criar(newItem);
+        [Fact]
+        public async Task Atualizar_Should_ReturnNoContent_When_EspecieUpdated()
+        {
+            // Arrange
+            var id = "123";
+            var especie = new Especie
+            {
+                Id = id,
+                NomeCientifico = "Tabebuia serratifolia",
+                NomePopular = "Ipê"
+            };
 
-    //        var created = result as CreatedAtActionResult;
-    //        created.Should().NotBeNull();
-    //        created!.RouteValues!["id"].Should().Be(newItem.Id);
-    //        await collection.Received(1).InsertOneAsync(newItem, Arg.Any<InsertOneOptions>(), Arg.Any<CancellationToken>());
-    //    }
+            _mockService
+                .UpdateAsync(id, especie)
+                .Returns(true);
 
-    //    [Fact]
-    //    public async Task Update_InvalidId_ReturnsBadRequest()
-    //    {
-    //        var controller = CreateControllerWithCollection();
+            // Act
+            var result = await _controller.Atualizar(id, especie);
 
-    //        var result = await controller.Atualizar("invalid-id", new Especie());
+            // Assert
+            result.Should().BeOfType<NoContentResult>();
+            await _mockService.Received(1).UpdateAsync(id, especie);
+        }
 
-    //        result.Should().BeOfType<BadRequestObjectResult>();
-    //    }
+        [Fact]
+        public async Task Atualizar_Should_ReturnNotFound_When_EspecieNotFound()
+        {
+            // Arrange
+            var id = "nonexistent";
+            var especie = new Especie();
 
-    //    [Fact]
-    //    public async Task Update_NotFound_ReturnsNotFound()
-    //    {
-    //        // Substitui ReplaceOneResult por um substitute e define MatchedCount = 0
-    //        var replaceResult = Substitute.For<ReplaceOneResult>();
-    //        replaceResult.MatchedCount.Returns(0);
+            _mockService
+                .UpdateAsync(id, especie)
+                .Returns(false);
 
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.ReplaceOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(replaceResult));
+            // Act
+            var result = await _controller.Atualizar(id, especie);
 
-    //        var controller = CreateControllerWithCollection(collection);
+            // Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
 
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Atualizar(id, new Especie());
+        [Fact]
+        public async Task Deletar_Should_ReturnNoContent_When_EspecieDeleted()
+        {
+            // Arrange
+            var id = "123";
 
-    //        result.Should().BeOfType<NotFoundResult>();
-    //    }
+            _mockService
+                .DeleteAsync(id)
+                .Returns(true);
 
-    //    [Fact]
-    //    public async Task Update_Success_ReturnsNoContent()
-    //    {
-    //        // Substitui ReplaceOneResult por um substitute e define MatchedCount = 1
-    //        var replaceResult = Substitute.For<ReplaceOneResult>();
-    //        replaceResult.MatchedCount.Returns(1);
+            // Act
+            var result = await _controller.Deletar(id);
 
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.ReplaceOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(replaceResult));
+            // Assert
+            result.Should().BeOfType<NoContentResult>();
+            await _mockService.Received(1).DeleteAsync(id);
+        }
 
-    //        var controller = CreateControllerWithCollection(collection);
+        [Fact]
+        public async Task Deletar_Should_ReturnNotFound_When_EspecieNotFound()
+        {
+            // Arrange
+            var id = "nonexistent";
 
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Atualizar(id, new Especie());
+            _mockService
+                .DeleteAsync(id)
+                .Returns(false);
 
-    //        result.Should().BeOfType<NoContentResult>();
-    //        await collection.Received(1).ReplaceOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<Especie>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>());
-    //    }
+            // Act
+            var result = await _controller.Deletar(id);
 
-    //    [Fact]
-    //    public async Task Delete_InvalidId_ReturnsBadRequest()
-    //    {
-    //        var controller = CreateControllerWithCollection();
-
-    //        var result = await controller.Deletar("invalid-id");
-
-    //        result.Should().BeOfType<BadRequestObjectResult>();
-    //    }
-
-    //    [Fact]
-    //    public async Task Delete_NotFound_ReturnsNotFound()
-    //    {
-    //        // Usa substitute para DeleteResult e define DeletedCount = 0
-    //        var deleteResult = Substitute.For<DeleteResult>();
-    //        deleteResult.DeletedCount.Returns(0);
-
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.DeleteOneAsync(Arg.Any<FilterDefinition<Especie>>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(deleteResult));
-
-    //        var controller = CreateControllerWithCollection(collection);
-
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Deletar(id);
-
-    //        result.Should().BeOfType<NotFoundResult>();
-    //    }
-
-    //    [Fact]
-    //    public async Task Delete_Success_ReturnsNoContent()
-    //    {
-    //        // Usa substitute para DeleteResult e define DeletedCount = 1
-    //        var deleteResult = Substitute.For<DeleteResult>();
-    //        deleteResult.DeletedCount.Returns(1);
-
-    //        var collection = Substitute.For<IMongoCollection<Especie>>();
-    //        collection.DeleteOneAsync(Arg.Any<Expression<Func<Especie, bool>>>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(deleteResult));
-
-    //        var controller = CreateControllerWithCollection(collection);
-
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Deletar(id);
-
-    //        result.Should().BeOfType<NoContentResult>();
-    //        await collection.Received(1).DeleteOneAsync(Arg.Any<Expression<Func<Especie, bool>>>(), Arg.Any<CancellationToken>());
-    //    }
-    //}
+            // Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
+    }
 }

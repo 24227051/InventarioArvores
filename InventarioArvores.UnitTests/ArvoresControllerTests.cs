@@ -1,280 +1,183 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using InventarioArvores.Controllers;
+﻿using InventarioArvores.Controllers;
 using InventarioArvores.DTOs;
 using InventarioArvores.Models;
+using InventarioArvores.Services;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 
 namespace InventarioArvores.UnitTests
 {
-    // Testes do controlador ArvoresController
-    //public class ArvoresControllerTests
-    //{
-    //    private static ArvoresController CreateControllerWithCollections(
-    //        IMongoCollection<Arvore>? arvoresCollection = null,
-    //        IMongoCollection<Especie>? especiesCollection = null)
-    //    {
-    //        var database = Substitute.For<IMongoDatabase>();
-    //        var arvCol = arvoresCollection ?? Substitute.For<IMongoCollection<Arvore>>();
-    //        var espCol = especiesCollection ?? Substitute.For<IMongoCollection<Especie>>();
+    public class ArvoresControllerTests
+    {
+        private readonly IArvoreService _mockService;
+        private readonly ILogger<ArvoresController> _mockLogger;
+        private readonly ArvoresController _controller;
 
-    //        database.GetCollection<Arvore>(Arg.Any<string>()).ReturnsForAnyArgs(arvCol);
-    //        database.GetCollection<Especie>(Arg.Any<string>()).ReturnsForAnyArgs(espCol);
+        public ArvoresControllerTests()
+        {
+            _mockService = Substitute.For<IArvoreService>();
+            _mockLogger = Substitute.For<ILogger<ArvoresController>>();
+            _controller = new ArvoresController(_mockService, _mockLogger);
+        }
 
-    //        return new ArvoresController(database);
-    //    }
+        [Fact]
+        public async Task Criar_Should_ReturnCreatedAtAction_When_ValidArvore()
+        {
+            // Arrange
+            var novaArvore = new Arvore { Id = "123", EspecieId = "456" };
 
-    //    [Fact]
-    //    public async Task GetAll_ReturnsOkWithList()
-    //    {
-    //        // Arrange: monta documento BSON que será desserializado para ArvoreDetalhadaDto
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var especieId = ObjectId.GenerateNewId().ToString();
+            _mockService
+                .CreateAsync(novaArvore)
+                .Returns(Task.CompletedTask);
 
-    //        var doc = new BsonDocument
-    //        {
-    //            { "_id", new ObjectId(id) },
-    //            { "especie_id", new ObjectId(especieId) },
-    //            { "data_registro", DateTime.UtcNow },
-    //            { "status_viva", true },
-    //            { "localizacao", new BsonDocument { { "type", "Point" }, { "coordinates", new BsonArray { 1.0, 2.0 } } } },
-    //            { "dendrometria", new BsonDocument { { "dap", 10.0 }, { "altura", 5.0 } } },
-    //            { "fotos", new BsonArray() },
-    //            { "laudos_tecnicos", new BsonArray() },
-    //            { "especie", new BsonDocument { { "_id", new ObjectId(especieId) }, { "nome_cientifico", "Specie X" }, { "nome_popular", "Popular X" } } }
-    //        };
+            // Act
+            var result = await _controller.Criar(novaArvore);
 
-    //        var documentos = new List<BsonDocument> { doc };
+            // Assert
+            result.Should().BeOfType<CreatedAtActionResult>();
+            var createdResult = result as CreatedAtActionResult;
+            createdResult.ActionName.Should().Be(nameof(ArvoresController.ObterPorId));
+            createdResult.RouteValues["id"].Should().Be(novaArvore.Id);
 
-    //        // Substitutos para a cadeia de agregação:
-    //        var aggregateArvore = Substitute.For<IAggregateFluent<Arvore>>();
-    //        var aggregateBson = Substitute.For<IAggregateFluent<BsonDocument>>();
+            await _mockService.Received(1).CreateAsync(novaArvore);
+        }
 
-    //        // Primeira agregação em Arvore
-    //        aggregateArvore.Match(Arg.Any<FilterDefinition<Arvore>>()).ReturnsForAnyArgs(aggregateArvore);
+        [Fact]
+        public async Task ObterTodas_Should_ReturnOkResult_With_ArvoreList()
+        {
+            // Arrange
+            var arvores = new List<ArvoreDetalhadaDto>
+            {
+                new ArvoreDetalhadaDto { Id = "1", EspecieId = "e1" },
+                new ArvoreDetalhadaDto { Id = "2", EspecieId = "e2" }
+            };
 
-    //        // O resultado do Match é passado, mas Lookup precisa ser mockado no aggregateBson
-    //        aggregateBson.Project(Arg.Any<BsonDocument>()).ReturnsForAnyArgs(aggregateBson);
-    //        aggregateBson.ToListAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult(documentos));
+            _mockService
+                .GetAllAsync()
+                .Returns(arvores);
 
-    //        // Não teste o Lookup especificamente ou use uma abordagem diferente
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.Aggregate().Returns(aggregateArvore);
+            // Act
+            var result = await _controller.ObterTodas();
 
-    //        var controller = CreateControllerWithCollections(collection);
+            // Assert
+            result.Result.Should().BeOfType<OkObjectResult>();
+            var okResult = result.Result as OkObjectResult;
+            var returnedArvores = okResult.Value as IEnumerable<ArvoreDetalhadaDto>;
 
-    //        // Act
-    //        var result = await controller.ObterTodas();
+            returnedArvores.Should().HaveCount(2);
+            await _mockService.Received(1).GetAllAsync();
+        }
 
-    //        // Assert
-    //        var ok = result.Result as OkObjectResult;
-    //        ok.Should().NotBeNull();
-    //        var list = ok!.Value as IEnumerable<ArvoreDetalhadaDto>;
-    //        list.Should().NotBeNull();
-    //        list!.Should().HaveCount(1);
-    //        list.Should().ContainSingle(a => a.Id == id && a.EspecieId == especieId);
-    //    }
+        [Fact]
+        public async Task ObterPorId_Should_ReturnOkResult_When_ArvoreExists()
+        {
+            // Arrange
+            var id = "123";
+            var arvoreDto = new ArvoreDetalhadaDto { Id = id, EspecieId = "456" };
 
-    //    [Fact]
-    //    public async Task GetById_InvalidId_ReturnsBadRequest()
-    //    {
-    //        var controller = CreateControllerWithCollections();
+            _mockService
+                .GetByIdAsync(id)
+                .Returns(arvoreDto);
 
-    //        var result = await controller.ObterPorId("invalid-id");
+            // Act
+            var result = await _controller.ObterPorId(id);
 
-    //        result.Result.Should().BeOfType<BadRequestObjectResult>();
-    //    }
+            // Assert
+            result.Result.Should().BeOfType<OkObjectResult>();
+            var okResult = result.Result as OkObjectResult;
+            okResult.Value.Should().BeEquivalentTo(arvoreDto);
+        }
 
-    //    [Fact]
-    //    public async Task GetById_NotFound_ReturnsNotFound()
-    //    {
-    //        var aggregateArvore = Substitute.For<IAggregateFluent<Arvore>>();
-    //        var aggregateBson = Substitute.For<IAggregateFluent<BsonDocument>>();
+        [Fact]
+        public async Task ObterPorId_Should_ReturnNotFound_When_ArvoreDoesNotExist()
+        {
+            // Arrange
+            var id = "nonexistent";
 
-    //        aggregateArvore.Match(Arg.Any<Expression<Func<Arvore, bool>>>()).Returns(aggregateArvore);
-    //        aggregateArvore.Lookup(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(aggregateBson);
-    //        aggregateBson.Project(Arg.Any<BsonDocument>()).Returns(aggregateBson);
-    //        aggregateBson.FirstOrDefaultAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<BsonDocument?>(null));
+            _mockService
+                .GetByIdAsync(id)
+                .Returns((ArvoreDetalhadaDto)null);
 
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.Aggregate().Returns(aggregateArvore);
+            // Act
+            var result = await _controller.ObterPorId(id);
 
-    //        var controller = CreateControllerWithCollections(collection);
+            // Assert
+            result.Result.Should().BeOfType<NotFoundResult>();
+        }
 
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.ObterPorId(id);
+        [Fact]
+        public async Task Atualizar_Should_ReturnNoContent_When_ArvoreUpdated()
+        {
+            // Arrange
+            var id = "123";
+            var arvore = new Arvore { Id = id };
 
-    //        result.Result.Should().BeOfType<NotFoundResult>();
-    //    }
+            _mockService
+                .UpdateAsync(id, arvore)
+                .Returns(true);
 
-    //    [Fact]
-    //    public async Task GetById_Found_ReturnsOkWithItem()
-    //    {
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var especieId = ObjectId.GenerateNewId().ToString();
+            // Act
+            var result = await _controller.Atualizar(id, arvore);
 
-    //        var doc = new BsonDocument
-    //        {
-    //            { "_id", new ObjectId(id) },
-    //            { "especie_id", new ObjectId(especieId) },
-    //            { "data_registro", DateTime.UtcNow },
-    //            { "status_viva", true },
-    //            { "localizacao", new BsonDocument { { "type", "Point" }, { "coordinates", new BsonArray { 1.0, 2.0 } } } },
-    //            { "dendrometria", new BsonDocument { { "dap", 10.0 }, { "altura", 5.0 } } },
-    //            { "fotos", new BsonArray() },
-    //            { "laudos_tecnicos", new BsonArray() },
-    //            { "especie", new BsonDocument { { "_id", new ObjectId(especieId) }, { "nome_cientifico", "Specie X" } } }
-    //        };
+            // Assert
+            result.Should().BeOfType<NoContentResult>();
+            await _mockService.Received(1).UpdateAsync(id, arvore);
+        }
 
-    //        var aggregateArvore = Substitute.For<IAggregateFluent<Arvore>>();
-    //        var aggregateBson = Substitute.For<IAggregateFluent<BsonDocument>>();
+        [Fact]
+        public async Task Atualizar_Should_ReturnNotFound_When_ArvoreNotFound()
+        {
+            // Arrange
+            var id = "nonexistent";
+            var arvore = new Arvore();
 
-    //        aggregateArvore.Match(Arg.Any<Expression<Func<Arvore, bool>>>()).Returns(aggregateArvore);
-    //        aggregateArvore.Lookup(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns(aggregateBson);
-    //        aggregateBson.Project(Arg.Any<BsonDocument>()).Returns(aggregateBson);
-    //        aggregateBson.FirstOrDefaultAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<BsonDocument?>(doc));
+            _mockService
+                .UpdateAsync(id, arvore)
+                .Returns(false);
 
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.Aggregate().Returns(aggregateArvore);
+            // Act
+            var result = await _controller.Atualizar(id, arvore);
 
-    //        var controller = CreateControllerWithCollections(collection);
+            // Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
 
-    //        var result = await controller.ObterPorId(id);
+        [Fact]
+        public async Task Deletar_Should_ReturnNoContent_When_ArvoreDeleted()
+        {
+            // Arrange
+            var id = "123";
 
-    //        var ok = result.Result as OkObjectResult;
-    //        ok.Should().NotBeNull();
-    //        var item = ok!.Value as ArvoreDetalhadaDto;
-    //        item.Should().NotBeNull();
-    //        item!.Id.Should().Be(id);
-    //        item.EspecieId.Should().Be(especieId);
-    //    }
+            _mockService
+                .DeleteAsync(id)
+                .Returns(true);
 
-    //    [Fact]
-    //    public async Task Create_CallsInsertAndReturnsCreated()
-    //    {
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.InsertOneAsync(Arg.Any<Arvore>(), Arg.Any<InsertOneOptions>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(Task.CompletedTask);
+            // Act
+            var result = await _controller.Deletar(id);
 
-    //        var controller = CreateControllerWithCollections(collection);
+            // Assert
+            result.Should().BeOfType<NoContentResult>();
+            await _mockService.Received(1).DeleteAsync(id);
+        }
 
-    //        var newItem = new Arvore { Id = ObjectId.GenerateNewId().ToString(), EspecieId = ObjectId.GenerateNewId().ToString() };
-    //        var result = await controller.Criar(newItem);
+        [Fact]
+        public async Task Deletar_Should_ReturnNotFound_When_ArvoreNotFound()
+        {
+            // Arrange
+            var id = "nonexistent";
 
-    //        var created = result as CreatedAtActionResult;
-    //        created.Should().NotBeNull();
-    //        created!.RouteValues!["id"].Should().Be(newItem.Id);
-    //        await collection.Received(1).InsertOneAsync(newItem, Arg.Any<InsertOneOptions>(), Arg.Any<CancellationToken>());
-    //    }
+            _mockService
+                .DeleteAsync(id)
+                .Returns(false);
 
-    //    [Fact]
-    //    public async Task Update_InvalidId_ReturnsBadRequest()
-    //    {
-    //        var controller = CreateControllerWithCollections();
+            // Act
+            var result = await _controller.Deletar(id);
 
-    //        var result = await controller.Atualizar("invalid-id", new Arvore());
-
-    //        result.Should().BeOfType<BadRequestObjectResult>();
-    //    }
-
-    //    [Fact]
-    //    public async Task Update_NotFound_ReturnsNotFound()
-    //    {
-    //        var replaceResult = Substitute.For<ReplaceOneResult>();
-    //        replaceResult.MatchedCount.Returns(0);
-
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-
-    //        // 2. Mantendo os argumentos corretos para evitar a ambiguidade do NSubstitute
-    //        collection.ReplaceOneAsync(
-    //            Arg.Any<FilterDefinition<Arvore>>(),
-    //            Arg.Any<Arvore>(),
-    //            Arg.Any<ReplaceOptions>(),
-    //            Arg.Any<CancellationToken>()
-    //        )
-    //        .Returns(Task.FromResult(replaceResult));
-
-    //        var controller = CreateControllerWithCollections(collection);
-
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Atualizar(id, new Arvore());
-
-    //        result.Should().BeOfType<NotFoundResult>();
-    //    }
-
-    //    [Fact]
-    //    public async Task Update_Success_ReturnsNoContent()
-    //    {
-    //        var replaceResult = Substitute.For<ReplaceOneResult>();
-    //        replaceResult.MatchedCount.Returns(1);
-
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.ReplaceOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(replaceResult));
-
-    //        var controller = CreateControllerWithCollections(collection);
-
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Atualizar(id, new Arvore());
-
-    //        result.Should().BeOfType<NoContentResult>();
-    //        await collection.Received(1).ReplaceOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<Arvore>(), Arg.Any<ReplaceOptions>(), Arg.Any<CancellationToken>());
-    //    }
-
-    //    [Fact]
-    //    public async Task Delete_InvalidId_ReturnsBadRequest()
-    //    {
-    //        var controller = CreateControllerWithCollections();
-
-    //        var result = await controller.Deletar("invalid-id");
-
-    //        result.Should().BeOfType<BadRequestObjectResult>();
-    //    }
-
-    //    [Fact]
-    //    public async Task Delete_NotFound_ReturnsNotFound()
-    //    {
-    //        var deleteResult = Substitute.For<DeleteResult>();
-    //        deleteResult.DeletedCount.Returns(0);
-
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.DeleteOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(deleteResult));
-
-    //        var controller = CreateControllerWithCollections(collection);
-
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Deletar(id);
-
-    //        result.Should().BeOfType<NotFoundResult>();
-    //    }
-
-    //    [Fact]
-    //    public async Task Delete_Success_ReturnsNoContent()
-    //    {
-    //        var deleteResult = Substitute.For<DeleteResult>();
-    //        deleteResult.DeletedCount.Returns(1);
-
-    //        var collection = Substitute.For<IMongoCollection<Arvore>>();
-    //        collection.DeleteOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<CancellationToken>())
-    //                  .ReturnsForAnyArgs(Task.FromResult(deleteResult));
-
-    //        var controller = CreateControllerWithCollections(collection);
-
-    //        var id = ObjectId.GenerateNewId().ToString();
-    //        var result = await controller.Deletar(id);
-
-    //        result.Should().BeOfType<NoContentResult>();
-    //        await collection.Received(1).DeleteOneAsync(Arg.Any<FilterDefinition<Arvore>>(), Arg.Any<CancellationToken>());
-    //    }
-    //}
+            // Assert
+            result.Should().BeOfType<NotFoundResult>();
+        }
+    }
 }
