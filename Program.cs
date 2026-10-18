@@ -88,16 +88,17 @@ namespace InventarioArvores
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAllOrigins",
-                    policy => policy.AllowAnyOrigin()
-                                    .AllowAnyMethod()
-                                    .AllowAnyHeader());
-                //options.AddPolicy("PermitirAngular", policy =>
-                //{
-                //    policy.WithOrigins("https://thankful-ocean-0d8fef90f.1.azurestaticapps.net/") // URL do seu Static App Angular
-                //          .AllowAnyHeader()
-                //          .AllowAnyMethod();
-                //});
+                //options.AddPolicy("AllowAllOrigins",
+                //    policy => policy.AllowAnyOrigin()
+                //                    .AllowAnyMethod()
+                //                    .AllowAnyHeader());
+                options.AddPolicy("PermitirAngular", policy =>
+                {
+                    policy.WithOrigins("https://thankful-ocean-0d8fef90f.1.azurestaticapps.net") // URL do seu Static App Angular
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
             });
 
             var app = builder.Build();
@@ -112,8 +113,8 @@ namespace InventarioArvores
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
-            app.UseCors("AllowAllOrigins");
-            //app.UseCors("PermitirAngular");
+            //app.UseCors("AllowAllOrigins");
+            app.UseCors("PermitirAngular");
 
             app.UseAuthentication();
             app.UseAuthorization();
