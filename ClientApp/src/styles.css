@@ -1,1 +1,30 @@
 /* You can add global styles to this file, and also import other style files */
+/* Estilo exigido para ocultar elementos mantendo a leitura dos Screen Readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Regras globais de Alto Contraste baseadas no eMAG */
+body.alto-contraste,
+body.alto-contraste main,
+body.alto-contraste header,
+body.alto-contraste footer,
+body.alto-contraste div,
+body.alto-contraste section {
+  background-color: #000000 !important;
+  color: #ffff00 !important; /* Texto Amarelo */
+  border-color: #ffff00 !important;
+}
+
+  body.alto-contraste a,
+  body.alto-contraste button {
+    color: #ffffff !important; /* Links e botões brancos para destacar */
+    text-decoration: underline !important;
+  }

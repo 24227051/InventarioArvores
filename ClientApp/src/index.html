@@ -9,6 +9,18 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBI5HiYLQcNpjSTkmrxP-UL3-TnOKSlsyY&libraries=places&language=pt-BR&region=BR" defer></script>
 </head>
 <body>
+  <!-- Estrutura nativa do VLibras -->
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br');
+  </script>
+
   <app-root></app-root>
 </body>
 </html>

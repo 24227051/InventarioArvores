@@ -1,0 +1,18 @@
+<nav class="barra-acessibilidade" aria-label="Acessibilidade e Atalhos">
+  <div class="container-barra">
+    <!-- Links de Salto (Escondidos visualmente, mas legíveis por leitores de tela e via TAB) -->
+    <ul class="links-atalho">
+      <li><a href="#conteudo-principal" (click)="irPara('conteudo-principal')">Ir para o conteúdo [1]</a></li>
+      <li><a href="#menu-principal" (click)="irPara('menu-principal')">Ir para o menu [2]</a></li>
+    </ul>
+
+    <!-- Ferramentas Visuais -->
+    <div class="ferramentas-acessibilidade">
+      <button (click)="toggleAltoContraste($event)"
+              aria-label="Alternar Alto Contraste"
+              title="Alternar Alto Contraste">
+        🌓 Alto Contraste
+      </button>
+    </div>
+  </div>
+</nav>

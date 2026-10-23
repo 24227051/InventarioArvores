@@ -49,14 +49,20 @@
   }
 </style>
 
-<div class="container" *ngIf="showMenu">
-  <h1>Inventário de Árvores</h1>
-  <p>Prefeitura Municipal de Vinhedo - SP - Secretaria do Planejamento do Meio Ambiente</p>
+<app-header-acessibilidade></app-header-acessibilidade>
 
-  <div class="nav-links">
-    <a routerLink="/especies" class="nav-link">Espécies</a>
-    <a routerLink="/arvores" class="nav-link">Árvores</a>
+<header id="menu-principal" tabindex="-1">
+  <div class="container" *ngIf="showMenu">
+    <h1>Inventário de Árvores</h1>
+    <p>Prefeitura Municipal de Vinhedo - SP - Secretaria do Planejamento do Meio Ambiente</p>
+
+    <div class="nav-links">
+      <a routerLink="/especies" class="nav-link">Espécies</a>
+      <a routerLink="/arvores" class="nav-link">Árvores</a>
+    </div>
   </div>
-</div>
+</header>
 
-<router-outlet></router-outlet>
+<main id="conteudo-principal" tabindex="-1" style="outline: none;">
+  <router-outlet></router-outlet>
+</main>
